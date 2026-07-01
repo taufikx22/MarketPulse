@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: marketpulse
+      POSTGRES_PASSWORD: marketpulse
+      POSTGRES_DB: marketpulse
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marketpulse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  chromadb:
+    image: chromadb/chroma:latest
+    ports:
+      - "8100:8000"
+    volumes:
+      - chromadata:/chroma/chroma
+
+volumes:
+  pgdata:
+  chromadata:
