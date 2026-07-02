@@ -1,0 +1,106 @@
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.meta {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}
+
+.sectionTitle {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+}
+
+.chartGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+@media (max-width: 900px) {
+  .chartGrid { grid-template-columns: 1fr; }
+}
+
+.productsSection {
+  margin-bottom: 1.5rem;
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.productCard {
+  padding: 1rem;
+}
+
+.productName {
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.price {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.productDesc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.reviewsSection {
+  margin-bottom: 2rem;
+}
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.reviewItem {
+  padding: 1rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.reviewHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 6px;
+}
+
+.reviewAuthor {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.rating {
+  font-size: 0.8rem;
+  color: var(--sentiment-positive);
+  letter-spacing: 1px;
+}
+
+.reviewDate {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin-left: auto;
+}
+
+.reviewText {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}

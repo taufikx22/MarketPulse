@@ -1,0 +1,41 @@
+.pageTitle { margin-bottom: 1rem; }
+.sectionTitle { margin-bottom: 0.75rem; font-size: 1.1rem; }
+
+.selector {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.grid {
+  margin-bottom: 1.5rem;
+}
+
+.tableSection {
+  margin-bottom: 2rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.table th, .table td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.table th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.table td {
+  color: var(--text-primary);
+}
+.table tr:hover td {
+  background: var(--bg-surface-hover);
+}

@@ -1,0 +1,213 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --font-heading: 'DM Serif Display', serif;
+  --font-body: 'Inter', -apple-system, sans-serif;
+
+  --bg: #FAFAF8;
+  --bg-surface: #FFFFFF;
+  --bg-surface-hover: #F5F5F2;
+  --bg-elevated: #FFFFFF;
+  --border: #E5E5E0;
+  --border-subtle: #EDEDEA;
+
+  --text-primary: #1A1A19;
+  --text-secondary: #6B6B66;
+  --text-tertiary: #9C9C96;
+
+  --accent: #3D5A80;
+  --accent-hover: #2C4460;
+  --accent-light: #E8EEF4;
+
+  --sentiment-positive: #5B8C5A;
+  --sentiment-negative: #C17B4A;
+  --sentiment-neutral: #8E8E8A;
+
+  --positive-bg: #EFF5EF;
+  --negative-bg: #FBF3ED;
+  --neutral-bg: #F3F3F2;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
+
+  --sidebar-width: 240px;
+  --header-height: 56px;
+}
+
+[data-theme="dark"] {
+  --bg: #111110;
+  --bg-surface: #1C1C1A;
+  --bg-surface-hover: #252523;
+  --bg-elevated: #222220;
+  --border: #2E2E2C;
+  --border-subtle: #262624;
+
+  --text-primary: #E8E8E4;
+  --text-secondary: #A0A09A;
+  --text-tertiary: #6B6B66;
+
+  --accent: #6B9ECF;
+  --accent-hover: #89B4DA;
+  --accent-light: #1E2A36;
+
+  --sentiment-positive: #7DB87C;
+  --sentiment-negative: #D4956A;
+  --sentiment-neutral: #8E8E8A;
+
+  --positive-bg: #1A2A1A;
+  --negative-bg: #2A1F16;
+  --neutral-bg: #222220;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 1.15rem; }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* Utility classes */
+.card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  transition: box-shadow 0.15s ease;
+}
+.card:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.badge--positive {
+  background: var(--positive-bg);
+  color: var(--sentiment-positive);
+}
+.badge--negative {
+  background: var(--negative-bg);
+  color: var(--sentiment-negative);
+}
+.badge--neutral {
+  background: var(--neutral-bg);
+  color: var(--sentiment-neutral);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s ease;
+}
+.btn--primary {
+  background: var(--accent);
+  color: #fff;
+}
+.btn--primary:hover {
+  background: var(--accent-hover);
+}
+.btn--secondary {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+.btn--secondary:hover {
+  background: var(--bg-surface-hover);
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, var(--border-subtle) 25%, var(--bg-surface-hover) 50%, var(--border-subtle) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Empty state */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+.empty-state svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  opacity: 0.4;
+}
+.empty-state p {
+  max-width: 320px;
+  font-size: 0.9rem;
+}
+
+/* Recharts overrides — minimal chart styling */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: var(--border-subtle);
+  stroke-width: 0.5;
+}
+.recharts-text {
+  fill: var(--text-tertiary);
+  font-size: 0.7rem;
+  font-family: var(--font-body);
+}
+.recharts-tooltip-wrapper {
+  outline: none;
+}

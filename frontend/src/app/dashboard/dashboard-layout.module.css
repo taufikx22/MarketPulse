@@ -1,0 +1,14 @@
+.wrapper {
+  min-height: 100vh;
+}
+
+.body {
+  display: flex;
+}
+
+.content {
+  flex: 1;
+  padding: 1.5rem;
+  max-width: calc(100vw - var(--sidebar-width));
+  overflow-x: hidden;
+}
