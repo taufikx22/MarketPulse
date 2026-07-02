@@ -54,22 +54,38 @@ async def list_reviews(
 @router.get("/{brand_id}/sentiment-trend")
 async def sentiment_trend(brand_id: int, db: AsyncSession = Depends(get_db)):
     """Weekly sentiment aggregation for a brand's reviews."""
-    result = await db.execute(
-        select(
-            func.date_trunc("week", Review.review_date).label("week"),
-            ReviewAnalysis.sentiment,
-            func.count().label("count"),
-            func.avg(ReviewAnalysis.sentiment_score).label("avg_score"),
+    if db.bind.dialect.name == "sqlite":
+        # Group by week representation in SQLite using strftime
+        result = await db.execute(
+            select(
+                func.strftime("%Y-%m-%d", func.date(Review.review_date, "-6 days", "weekday 1")).label("week"),
+                ReviewAnalysis.sentiment,
+                func.count().label("count"),
+                func.avg(ReviewAnalysis.sentiment_score).label("avg_score"),
+            )
+            .join(Product, Product.id == Review.product_id)
+            .join(ReviewAnalysis, ReviewAnalysis.review_id == Review.id)
+            .where(Product.brand_id == brand_id)
+            .group_by("week", ReviewAnalysis.sentiment)
+            .order_by("week")
         )
-        .join(Product, Product.id == Review.product_id)
-        .join(ReviewAnalysis, ReviewAnalysis.review_id == Review.id)
-        .where(Product.brand_id == brand_id)
-        .group_by("week", ReviewAnalysis.sentiment)
-        .order_by("week")
-    )
+    else:
+        result = await db.execute(
+            select(
+                func.date_trunc("week", Review.review_date).label("week"),
+                ReviewAnalysis.sentiment,
+                func.count().label("count"),
+                func.avg(ReviewAnalysis.sentiment_score).label("avg_score"),
+            )
+            .join(Product, Product.id == Review.product_id)
+            .join(ReviewAnalysis, ReviewAnalysis.review_id == Review.id)
+            .where(Product.brand_id == brand_id)
+            .group_by("week", ReviewAnalysis.sentiment)
+            .order_by("week")
+        )
     rows = result.all()
     return [
-        {"week": str(r.week), "sentiment": r.sentiment, "count": r.count, "avg_score": round(float(r.avg_score), 3)}
+        {"week": str(r.week), "sentiment": r.sentiment, "count": r.count, "avg_score": round(float(r.avg_score or 0), 3)}
         for r in rows
     ]
 
@@ -77,20 +93,48 @@ async def sentiment_trend(brand_id: int, db: AsyncSession = Depends(get_db)):
 @router.get("/{brand_id}/themes")
 async def theme_breakdown(brand_id: int, db: AsyncSession = Depends(get_db)):
     """Theme frequency with average sentiment score per theme."""
-    result = await db.execute(
-        select(
-            func.unnest(ReviewAnalysis.themes).label("theme"),
-            func.count().label("count"),
-            func.avg(ReviewAnalysis.sentiment_score).label("avg_score"),
+    if db.bind.dialect.name == "sqlite":
+        # Fetch analysis and aggregate themes in python memory for SQLite
+        result = await db.execute(
+            select(ReviewAnalysis.themes, ReviewAnalysis.sentiment_score)
+            .join(Review, Review.id == ReviewAnalysis.review_id)
+            .join(Product, Product.id == Review.product_id)
+            .where(Product.brand_id == brand_id)
         )
-        .join(Review, Review.id == ReviewAnalysis.review_id)
-        .join(Product, Product.id == Review.product_id)
-        .where(Product.brand_id == brand_id)
-        .group_by("theme")
-        .order_by(func.count().desc())
-    )
+        import json
+        from collections import defaultdict
+        theme_counts = defaultdict(int)
+        theme_scores = defaultdict(list)
+        for themes_str, score in result.all():
+            if not themes_str:
+                continue
+            try:
+                themes_list = json.loads(themes_str) if isinstance(themes_str, str) else themes_str
+                for t in themes_list:
+                    theme_counts[t] += 1
+                    theme_scores[t].append(score)
+            except Exception:
+                pass
+        sorted_themes = sorted(theme_counts.items(), key=lambda x: x[1], reverse=True)
+        return [
+            {"theme": t, "count": cnt, "avg_score": round(sum(theme_scores[t]) / len(theme_scores[t]), 3)}
+            for t, cnt in sorted_themes
+        ]
+    else:
+        result = await db.execute(
+            select(
+                func.unnest(ReviewAnalysis.themes).label("theme"),
+                func.count().label("count"),
+                func.avg(ReviewAnalysis.sentiment_score).label("avg_score"),
+            )
+            .join(Review, Review.id == ReviewAnalysis.review_id)
+            .join(Product, Product.id == Review.product_id)
+            .where(Product.brand_id == brand_id)
+            .group_by("theme")
+            .order_by(func.count().desc())
+        )
     rows = result.all()
     return [
-        {"theme": r.theme, "count": r.count, "avg_score": round(float(r.avg_score), 3)}
+        {"theme": r.theme, "count": r.count, "avg_score": round(float(r.avg_score or 0), 3)}
         for r in rows
     ]
