@@ -29,6 +29,14 @@ yarn-error.log*
 .env.production
 .env.development
 
+# Database / SQLite
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+
 # Staging / scraped data
 backend/staging/*
 !backend/staging/README.md
