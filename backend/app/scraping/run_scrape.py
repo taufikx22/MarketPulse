@@ -12,10 +12,13 @@ from app.models.product import Product
 from app.models.review import Review
 from app.pipeline.cleaning import clean_product, clean_review
 from app.scraping.decode_age import DecodeAgeScraper
+from app.scraping.other_brands import KapivaScraper, OzivaScraper
 
 
 SCRAPERS = {
     "decode_age": DecodeAgeScraper,
+    "kapiva": KapivaScraper,
+    "oziva": OzivaScraper,
 }
 
 
