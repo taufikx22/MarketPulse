@@ -63,6 +63,15 @@ def verify_token(token: str) -> ClerkUser:
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> ClerkUser:
+    settings = get_settings()
+    if not settings.clerk_jwks_url:
+        # Dev fallback when Clerk is not configured
+        return ClerkUser(
+            user_id="mock_user_123",
+            org_id="mock_org_123",
+            org_role="admin",
+        )
+
     if credentials is None:
         raise HTTPException(status_code=401, detail="Not authenticated")
     return verify_token(credentials.credentials)
@@ -72,3 +81,4 @@ async def require_analyst(user: ClerkUser = Depends(get_current_user)) -> ClerkU
     if user.org_role not in ("admin", "org:admin", "analyst", "org:analyst"):
         raise HTTPException(status_code=403, detail="Analyst role required")
     return user
+

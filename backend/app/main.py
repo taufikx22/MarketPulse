@@ -2,7 +2,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
-from app.routers import brands, webhooks, org, insights, search, compare
+from app.routers import brands, webhooks, org, insights, search, compare, import_data
+
 
 
 @asynccontextmanager
@@ -35,6 +36,7 @@ app.include_router(org.router)
 app.include_router(insights.router)
 app.include_router(search.router)
 app.include_router(compare.router)
+app.include_router(import_data.router)
 
 
 @app.get("/health")

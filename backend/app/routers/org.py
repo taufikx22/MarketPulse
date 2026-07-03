@@ -20,7 +20,14 @@ async def get_me(
     )
     db_user = result.scalar_one_or_none()
     if not db_user:
-        raise HTTPException(status_code=404, detail="User not synced yet")
+        from app.config import get_settings
+        settings = get_settings()
+        if not settings.clerk_jwks_url:
+            db_user = User(clerk_user_id=user.user_id, email="mock@marketpulse.dev", name="Mock Analyst")
+            db.add(db_user)
+            await db.flush()
+        else:
+            raise HTTPException(status_code=404, detail="User not synced yet")
     return db_user
 
 
@@ -32,8 +39,16 @@ async def _resolve_org(user: ClerkUser, db: AsyncSession) -> Organization:
     )
     org = result.scalar_one_or_none()
     if not org:
-        raise HTTPException(status_code=404, detail="Organization not synced yet")
+        from app.config import get_settings
+        settings = get_settings()
+        if not settings.clerk_jwks_url:
+            org = Organization(clerk_org_id=user.org_id, name="Mock Workspace")
+            db.add(org)
+            await db.flush()
+        else:
+            raise HTTPException(status_code=404, detail="Organization not synced yet")
     return org
+
 
 
 @router.get("/org/watchlist", response_model=list[BrandOut])

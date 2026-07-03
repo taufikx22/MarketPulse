@@ -56,6 +56,10 @@ class InsightOut(BaseModel):
     supporting_review_ids: Optional[list[int]]
 
 
+class EnrichedInsightOut(InsightOut):
+    supporting_reviews: Optional[list[ReviewOut]] = []
+
+
 class WatchlistOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
