@@ -64,6 +64,7 @@ export interface Insight {
   text: string;
   generated_at: string;
   supporting_review_ids: number[] | null;
+  supporting_reviews?: Review[];
 }
 
 export interface ComparisonData {
@@ -82,6 +83,10 @@ export interface SearchResult {
   text: string;
   sentiment: string;
   distance: number | null;
+  product_name?: string;
+  author?: string;
+  date?: string;
+  rating?: number;
 }
 
 export const api = {
@@ -93,5 +98,11 @@ export const api = {
   themes: (brandId: number) => fetcher<ThemeData[]>(`/brands/${brandId}/themes`),
   insights: (brandId?: number) => fetcher<Insight[]>(brandId ? `/insights?brand_id=${brandId}` : '/insights'),
   compare: (ids: number[]) => fetcher<ComparisonData[]>(`/compare?brand_ids=${ids.join(',')}`),
-  search: (query: string, n = 10) => fetcher<{ query: string; results: SearchResult[] }>(`/search?q=${encodeURIComponent(query)}&n=${n}`),
+  search: (query: string, brandId?: number, sentiment?: string, n = 15) => {
+    let url = `/search?q=${encodeURIComponent(query)}&n=${n}`;
+    if (brandId) url += `&brand_id=${brandId}`;
+    if (sentiment) url += `&sentiment=${sentiment}`;
+    return fetcher<{ query: string; results: SearchResult[] }>(url);
+  },
 };
+

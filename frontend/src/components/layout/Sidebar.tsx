@@ -9,6 +9,7 @@ const navItems = [
   { href: '/dashboard/compare', label: 'Compare', icon: '⇄' },
   { href: '/dashboard/insights', label: 'Insights', icon: '✦' },
   { href: '/dashboard/search', label: 'Search', icon: '⌕' },
+  { href: '/dashboard/settings', label: 'Settings', icon: '⚙' },
 ];
 
 export default function Sidebar() {

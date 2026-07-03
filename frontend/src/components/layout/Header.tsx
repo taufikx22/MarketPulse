@@ -2,6 +2,7 @@
 
 import { useTheme } from '@/lib/theme';
 import Link from 'next/link';
+import Logo from '../ui/Logo';
 import styles from './Header.module.css';
 
 export default function Header() {
@@ -10,7 +11,7 @@ export default function Header() {
   return (
     <header className={styles.header}>
       <Link href="/dashboard" className={styles.logo}>
-        <span className={styles.logoMark}>◆</span>
+        <Logo size={18} />
         MarketPulse
       </Link>
       <div className={styles.actions}>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api, Brand, Review } from '@/lib/api';
 import Sparkline from '@/components/charts/Sparkline';
+import IngestPanel from '@/components/ui/IngestPanel';
 import styles from './overview.module.css';
 
 interface BrandCard {
@@ -76,10 +77,11 @@ export default function OverviewPage() {
     return (
       <div>
         <h1 className={styles.pageTitle}>Overview</h1>
-        <div className="empty-state">
+        <div className="empty-state" style={{ marginBottom: '2rem' }}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          <p>No brands tracked yet. Add brands to your watchlist to see analytics here.</p>
+          <p>No brands tracked yet. Trigger a live scrape or import a data file below to start tracking your first brand.</p>
         </div>
+        <IngestPanel onSuccess={loadData} />
       </div>
     );
   }
@@ -113,6 +115,8 @@ export default function OverviewPage() {
           </Link>
         ))}
       </div>
+
+      <IngestPanel onSuccess={loadData} />
     </div>
   );
 }
