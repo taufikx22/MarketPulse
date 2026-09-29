@@ -76,7 +76,7 @@ flowchart TD
 | **Vector Storage** | ChromaDB (remote HttpClient & local persistent Client) | Nearest-neighbor vector indexing and cosine distance semantic retrieval |
 | **AI / NLP Models** | `sentence-transformers` (all-MiniLM-L6-v2), `transformers`, `torch` | 384-dimensional dense semantic embeddings; zero-shot classification; sentiment scoring |
 | **Data Ingestion** | Playwright (headless Chromium), BeautifulSoup4, lxml | Dynamic web scraping of e-commerce storefronts and customer review widgets |
-| **DevOps & Infra** | Docker, Docker Compose, Alpine Linux | Containerized multi-service deployment (PostgreSQL, ChromaDB, FastAPI, Next.js) |
+| **DevOps & Infra** | Docker, Docker Compose | Containerized multi-service deployment (PostgreSQL, ChromaDB, FastAPI, Next.js) |
 | **Testing** | pytest 9.1, pytest-asyncio, httpx, aiosqlite StaticPool | Asynchronous unit, integration, and evaluation benchmark testing (62 automated tests) |
 
 ---
@@ -116,7 +116,7 @@ MarketPulse implements true semantic search over customer reviews using local se
 * **Model**: `sentence-transformers/all-MiniLM-L6-v2`
 * **Vector Dimension**: 384 dimensions (float32 vectors, L2 unit normalized).
 * **Distance Metric**: Cosine distance space configured via ChromaDB collection metadata `{"hnsw:space": "cosine"}`.
-* **Calibrated Relevance**: ChromaDB returns cosine distance $d = 1 - \cos(\theta) \in [0, 2]$. Distances are clamped to $[0.0, 1.0]$, producing an accurate semantic relevance percentage: $\text{Relevance} = (1.0 - d) \times 100\%$.
+* **Calibrated Relevance**: ChromaDB returns cosine distance $d = 1 - \cos(\theta) \in [0, 2]$. Distances are clamped to $[0.0, 1.0]$, producing a bounded relevance score for consistent ranking and UI presentation: $\text{Relevance} = (1.0 - d) \times 100\%$.
 * **Lifecycle & Caching**: The transformer model is loaded once as an in-memory singleton. Model loading attempts local file loading first to guarantee zero network latency during queries.
 * **Reindexing Mechanism**: `POST /search/reindex` or `reindex_all_reviews()` queries all existing reviews from the relational database and synchronizes them into the ChromaDB collection with associated metadata (`review_id`, `product_id`, `brand_id`, `sentiment`, `rating`).
 
@@ -205,9 +205,9 @@ FastAPI exposes an asynchronous REST API documented interactively at `/docs` (Sw
 
 ### Organization & Watchlist
 * `GET /me`: Current user / organization profile.
-* `GET /watchlist`: List followed brands in watchlist.
-* `POST /watchlist/{brand_id}`: Add a brand to the user's watchlist.
-* `DELETE /watchlist/{brand_id}`: Remove a brand from the watchlist.
+* `GET /org/watchlist`: List followed brands in the organization's watchlist.
+* `POST /org/watchlist`: Add a brand to the organization's watchlist (request body: `{"brand_id": int}`).
+* `DELETE /org/watchlist/{brand_id}`: Remove a brand from the organization's watchlist.
 
 ### Webhooks
 * `POST /webhooks/clerk`: Svix-verified webhook endpoint for syncing external Clerk user events.
