@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.pyo
 *.egg-info/
 *.egg
@@ -11,6 +12,7 @@ venv/
 env/
 *.whl
 pip-log.txt
+pip-delete-this-directory.txt
 
 # Node / Next.js
 node_modules/
@@ -22,12 +24,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Environment
+# Environment & Secrets (Never commit secrets)
 .env
-.env.local
-.env.*.local
-.env.production
-.env.development
+.env.*
+!.env.example
+!**/.env.example
+*.pem
+*.key
 
 # Database / SQLite
 *.db
@@ -37,44 +40,48 @@ backend/*.db
 backend/*.sqlite
 backend/*.sqlite3
 
-# Staging / scraped data
+# Staging / Scraped Data Cache
 backend/staging/*
 !backend/staging/README.md
 
-# ChromaDB local data
+# Vector Store / Local Persistent Data
 chroma_data/
-
-# Docker volumes
-pgdata/
 chromadata/
+pgdata/
 
-# Alembic
+# Alembic cache
 backend/alembic/versions/__pycache__/
 
-# IDE
+# IDE & Editors
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
-# OS
+# OS Files
 .DS_Store
 Thumbs.db
 Desktop.ini
 ehthumbs.db
 
-# Logs
+# Logs & Temporary Files
 *.log
 logs/
+*.tmp
+scratch/
 
-# Coverage / testing
+# Testing & Coverage
 htmlcov/
 .coverage
+.coverage.*
 .pytest_cache/
 .mypy_cache/
+.hypothesis/
 
-# TypeScript
+# TypeScript & Local Agent Files
 *.tsbuildinfo
 next-env.d.ts
 frontend/AGENTS.md

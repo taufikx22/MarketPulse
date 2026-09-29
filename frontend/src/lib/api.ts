@@ -60,11 +60,19 @@ export interface ThemeData {
 export interface Insight {
   id: number;
   brand_id: number;
+  product_id?: number | null;
   type: string;
   text: string;
   generated_at: string;
   supporting_review_ids: number[] | null;
   supporting_reviews?: Review[];
+  severity?: 'critical' | 'high' | 'medium' | 'low';
+  status?: string;
+  metric?: string | null;
+  baseline_value?: number | null;
+  current_value?: number | null;
+  deviation?: number | null;
+  threshold?: number | null;
 }
 
 export interface ComparisonData {
@@ -83,6 +91,7 @@ export interface SearchResult {
   text: string;
   sentiment: string;
   distance: number | null;
+  relevance?: number | null;
   product_name?: string;
   author?: string;
   date?: string;
@@ -96,7 +105,22 @@ export const api = {
   reviews: (brandId: number, limit = 50) => fetcher<Review[]>(`/brands/${brandId}/reviews?limit=${limit}`),
   sentimentTrend: (brandId: number) => fetcher<SentimentTrend[]>(`/brands/${brandId}/sentiment-trend`),
   themes: (brandId: number) => fetcher<ThemeData[]>(`/brands/${brandId}/themes`),
-  insights: (brandId?: number) => fetcher<Insight[]>(brandId ? `/insights?brand_id=${brandId}` : '/insights'),
+  insights: (brandIdOrOptions?: number | { brandId?: number; severity?: string; status?: string; isAnomaly?: boolean }) => {
+    if (typeof brandIdOrOptions === 'number') {
+      return fetcher<Insight[]>(`/insights?brand_id=${brandIdOrOptions}`);
+    }
+    const params = new URLSearchParams();
+    if (brandIdOrOptions?.brandId) params.append('brand_id', String(brandIdOrOptions.brandId));
+    if (brandIdOrOptions?.severity) params.append('severity', brandIdOrOptions.severity);
+    if (brandIdOrOptions?.status) params.append('status', brandIdOrOptions.status);
+    if (brandIdOrOptions?.isAnomaly !== undefined) params.append('is_anomaly', String(brandIdOrOptions.isAnomaly));
+    const qs = params.toString();
+    return fetcher<Insight[]>(qs ? `/insights?${qs}` : '/insights');
+  },
+  detectAnomalies: (brandId?: number) => {
+    const url = brandId ? `/insights/detect-anomalies?brand_id=${brandId}` : '/insights/detect-anomalies';
+    return fetcher<{ status: string; anomalies_detected: number; anomalies: Record<string, unknown>[] }>(url, { method: 'POST' });
+  },
   compare: (ids: number[]) => fetcher<ComparisonData[]>(`/compare?brand_ids=${ids.join(',')}`),
   search: (query: string, brandId?: number, sentiment?: string, n = 15) => {
     let url = `/search?q=${encodeURIComponent(query)}&n=${n}`;

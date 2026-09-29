@@ -53,7 +53,15 @@ class InsightOut(BaseModel):
     type: str
     text: str
     generated_at: datetime
-    supporting_review_ids: Optional[list[int]]
+    supporting_review_ids: Optional[list[int]] = []
+    severity: Optional[str] = "medium"
+    status: Optional[str] = "active"
+    metric: Optional[str] = None
+    baseline_value: Optional[float] = None
+    current_value: Optional[float] = None
+    deviation: Optional[float] = None
+    threshold: Optional[float] = None
+    product_id: Optional[int] = None
 
 
 class EnrichedInsightOut(InsightOut):

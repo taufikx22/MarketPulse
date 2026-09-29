@@ -60,6 +60,7 @@ async def semantic_search(
             "text": h["document"],
             "sentiment": h["metadata"].get("sentiment"),
             "distance": h.get("distance"),
+            "relevance": h.get("relevance", round(max(0.0, min(1.0, 1.0 - (h.get("distance") or 0.0))), 4)),
             "product_name": extra.get("product_name"),
             "author": extra.get("author"),
             "date": extra.get("date"),
@@ -69,5 +70,16 @@ async def semantic_search(
     return {
         "query": q,
         "results": results,
+    }
+
+
+@router.post("/reindex")
+async def trigger_reindex(db: AsyncSession = Depends(get_db)):
+    """Reindex all reviews and metadata into ChromaDB vector database."""
+    from app.pipeline.embeddings import reindex_all_reviews
+    count = await reindex_all_reviews(session=db)
+    return {
+        "status": "success",
+        "reviews_indexed": count,
     }
 

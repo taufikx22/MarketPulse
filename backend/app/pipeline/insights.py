@@ -4,10 +4,13 @@ Usage: python -m app.pipeline.insights
 
 import asyncio
 import json
+import logging
 from collections import defaultdict, Counter
 from datetime import datetime, timezone
 from sqlalchemy import select, delete
 from sqlalchemy.orm import selectinload
+
+logger = logging.getLogger(__name__)
 from app.database import async_session
 from app.models.brand import Brand
 from app.models.product import Product
@@ -139,7 +142,7 @@ async def generate_brand_insights(brand_id: int, session):
         session.add(summary_insight)
 
     await session.commit()
-    print(f"Generated insights for {brand.name}.")
+    logger.info("Generated %d insights for brand '%s' (id=%d).", insights_generated or 1, brand.name, brand_id)
 
 
 async def generate_all_insights():

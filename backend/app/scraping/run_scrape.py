@@ -3,6 +3,7 @@ Usage:  python -m app.scraping.run_scrape decode_age
 """
 
 import asyncio
+import logging
 import sys
 from datetime import datetime, timezone
 from sqlalchemy import select
@@ -14,6 +15,7 @@ from app.pipeline.cleaning import clean_product, clean_review
 from app.scraping.decode_age import DecodeAgeScraper
 from app.scraping.other_brands import KapivaScraper, OzivaScraper
 
+logger = logging.getLogger(__name__)
 
 SCRAPERS = {
     "decode_age": DecodeAgeScraper,
@@ -25,21 +27,30 @@ SCRAPERS = {
 async def run_scrape(brand_key: str):
     scraper_cls = SCRAPERS.get(brand_key)
     if not scraper_cls:
-        print(f"Unknown brand: {brand_key}. Available: {list(SCRAPERS.keys())}")
+        logger.error("Unknown brand: %s. Available: %s", brand_key, list(SCRAPERS.keys()))
         return
 
     scraper = scraper_cls()
-    print(f"Starting scrape for {scraper.brand_name}...")
+    logger.info("Starting scrape for %s...", scraper.brand_name)
 
     # 1. Scrape products (and reviews per product)
-    products_raw = await scraper.scrape_products()
-    print(f"  Found {len(products_raw)} products")
+    try:
+        products_raw = await scraper.scrape_products()
+    except Exception as exc:
+        logger.exception("Failed to scrape products for %s: %s", scraper.brand_name, exc)
+        return
 
-    # Scrape reviews for each product
+    logger.info("Found %d products for %s", len(products_raw), scraper.brand_name)
+
+    # Scrape reviews for each product with per-product isolation
     for prod in products_raw:
-        reviews = await scraper.scrape_reviews(prod["url"], prod["name"])
-        prod["reviews"] = reviews
-        print(f"  {prod['name']}: {len(reviews)} reviews")
+        try:
+            reviews = await scraper.scrape_reviews(prod["url"], prod["name"])
+            prod["reviews"] = reviews
+            logger.info("  %s: %d reviews", prod.get("name"), len(reviews))
+        except Exception as exc:
+            logger.warning("Failed scraping reviews for product %s (%s): %s", prod.get("name"), prod.get("url"), exc)
+            prod["reviews"] = []
 
     # 2. Clean and insert into DB
     async with async_session() as session:
@@ -99,9 +110,11 @@ async def run_scrape(brand_key: str):
                 total_new_reviews += 1
 
         await session.commit()
-        print(f"\nDone: {total_new_reviews} new reviews inserted, {total_dupes} duplicates skipped.")
+        logger.info("Done: %d new reviews inserted, %d duplicates skipped.", total_new_reviews, total_dupes)
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     brand = sys.argv[1] if len(sys.argv) > 1 else "decode_age"
     asyncio.run(run_scrape(brand))
+

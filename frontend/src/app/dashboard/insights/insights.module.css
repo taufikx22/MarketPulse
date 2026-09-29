@@ -91,6 +91,149 @@
   line-height: 1.45;
 }
 
+.controlsHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.subFilters {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filterSelect {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.anomalyCard {
+  padding: 1.1rem 1.25rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.75rem;
+}
+
+.anomalyCardCritical {
+  border-left: 4px solid #ef4444;
+}
+
+.anomalyCardHigh {
+  border-left: 4px solid #f97316;
+}
+
+.anomalyCardMedium {
+  border-left: 4px solid #eab308;
+}
+
+.anomalyCardLow {
+  border-left: 4px solid #3b82f6;
+}
+
+.badgeCritical {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.5px;
+}
+
+.badgeHigh {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.5px;
+}
+
+.badgeMedium {
+  background: rgba(234, 179, 8, 0.15);
+  color: #eab308;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.5px;
+}
+
+.badgeLow {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.5px;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.75rem;
+  margin: 0.85rem 0 0.5rem 0;
+  padding: 0.65rem 0.85rem;
+  background: var(--bg-surface-hover);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.metricItem {
+  display: flex;
+  flex-direction: column;
+}
+
+.metricLabel {
+  font-size: 0.7rem;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.metricValue {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.metricDeviationSpike {
+  color: #ef4444;
+}
+
+.metricDeviationDrop {
+  color: #ef4444;
+}
+
+.metricDeviationGood {
+  color: #10b981;
+}
+
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-4px); }
   to { opacity: 1; transform: translateY(0); }

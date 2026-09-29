@@ -1,6 +1,7 @@
 import csv
 import io
 import json
+import logging
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
@@ -15,6 +16,8 @@ from app.pipeline.enrich import enrich_reviews
 from app.pipeline.insights import generate_brand_insights
 from app.scraping.run_scrape import run_scrape, SCRAPERS
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["ingestion"])
 
 
@@ -27,14 +30,25 @@ async def import_brand_data(
     db: AsyncSession = Depends(get_db),
 ):
     """Import brand data (products and reviews) from uploaded JSON/CSV files."""
+    if not brand_name or not brand_name.strip():
+        raise HTTPException(400, "Brand name is required.")
+
     contents = await file.read()
+    if not contents or len(contents.strip()) == 0:
+        raise HTTPException(400, "Uploaded file is empty.")
+
     filename = file.filename.lower() if file.filename else ""
+    logger.info("Starting file import for brand '%s' from file '%s' (%d bytes)", brand_name, filename, len(contents))
 
     products_data = []
 
     if filename.endswith(".json"):
         try:
-            raw_data = json.loads(contents.decode("utf-8"))
+            try:
+                decoded = contents.decode("utf-8")
+            except UnicodeDecodeError:
+                raise HTTPException(400, "File must be valid UTF-8 encoded JSON.")
+            raw_data = json.loads(decoded)
             # Standard structural format: { "products": [ { "name", "url", "price", ..., "reviews": [...] } ] }
             if isinstance(raw_data, dict):
                 # Optionally override brand metadata if present in JSON
@@ -48,13 +62,15 @@ async def import_brand_data(
                 raise HTTPException(400, "JSON must be an object or a list")
 
             for p_raw in products_list:
+                if not isinstance(p_raw, dict):
+                    continue
                 products_data.append({
                     "name": p_raw.get("name", "").strip(),
                     "url": p_raw.get("url", "").strip(),
                     "price": p_raw.get("price"),
                     "description": p_raw.get("description", ""),
                     "image_url": p_raw.get("image_url"),
-                    "reviews": p_raw.get("reviews", [])
+                    "reviews": p_raw.get("reviews", []) if isinstance(p_raw.get("reviews"), list) else []
                 })
         except Exception as e:
             if isinstance(e, HTTPException):
@@ -63,14 +79,17 @@ async def import_brand_data(
 
     elif filename.endswith(".csv"):
         try:
-            text_data = contents.decode("utf-8")
+            try:
+                text_data = contents.decode("utf-8")
+            except UnicodeDecodeError:
+                raise HTTPException(400, "File must be valid UTF-8 encoded CSV.")
             reader = csv.DictReader(io.StringIO(text_data))
 
             # Helper to map columns flexibly
             def find_col(row, *aliases):
                 for alias in aliases:
                     for key in row.keys():
-                        if key.lower().strip() == alias.lower():
+                        if key and key.lower().strip() == alias.lower():
                             return row[key]
                 return None
 
@@ -108,6 +127,8 @@ async def import_brand_data(
             
             products_data = list(prod_map.values())
         except Exception as e:
+            if isinstance(e, HTTPException):
+                raise e
             raise HTTPException(400, f"Failed to parse CSV file: {e}")
     else:
         raise HTTPException(400, "Unsupported file format. Please upload JSON or CSV.")
@@ -174,10 +195,19 @@ async def import_brand_data(
             total_reviews += 1
 
     await db.commit()
+    logger.info(
+        "Imported brand '%s': %d products processed (%d new), %d new reviews inserted, %d duplicates skipped.",
+        brand.name,
+        len(products_data),
+        total_products,
+        total_reviews,
+        total_dupes,
+    )
 
     # 3. Trigger NLP enrichment to compute sentiment, themes, and embeddings immediately
     if total_reviews > 0:
-        await enrich_reviews()
+        logger.info("Triggering NLP enrichment and insight generation for brand '%s'...", brand.name)
+        await enrich_reviews(session=db)
         await generate_brand_insights(brand.id, db)
 
     return {
@@ -229,13 +259,20 @@ async def trigger_brand_scrape(
                 f"No automatic scraper registered for brand '{brand.name}'. Supported scrapers: {list(SCRAPERS.keys())}. Please import data via JSON/CSV instead."
             )
 
+    logger.info("Queueing background scrape for brand '%s' (key=%s, id=%d)", brand.name, brand_key, brand_id)
+
     # Run scraping and enrichment asynchronously in the background
     async def scrape_and_enrich_task():
-        await run_scrape(brand_key)
-        await enrich_reviews()
-        from app.database import async_session
-        async with async_session() as session:
-            await generate_brand_insights(brand_id, session)
+        try:
+            logger.info("Executing background scrape for %s...", brand_key)
+            await run_scrape(brand_key)
+            await enrich_reviews()
+            from app.database import async_session
+            async with async_session() as session:
+                await generate_brand_insights(brand_id, session)
+            logger.info("Background scrape and enrichment for %s completed successfully.", brand_key)
+        except Exception as exc:
+            logger.exception("Error during background scraping task for brand '%s': %s", brand.name, exc)
 
     background_tasks.add_task(scrape_and_enrich_task)
 
@@ -279,16 +316,23 @@ async def trigger_brand_scrape_by_key(
         res = await db.execute(select(Brand).where(Brand.url == scraper.base_url))
         brand = res.scalar_one_or_none()
 
+    logger.info("Queueing background scrape for brand key '%s' (brand=%s)", brand_key, brand.name)
+
     async def scrape_and_enrich_task():
-        await run_scrape(brand_key)
-        await enrich_reviews()
-        from app.database import async_session
-        async with async_session() as session:
-            # Resolve brand_id again
-            res_b = await session.execute(select(Brand).where(Brand.url == scraper.base_url))
-            b_val = res_b.scalar_one_or_none()
-            if b_val:
-                await generate_brand_insights(b_val.id, session)
+        try:
+            logger.info("Executing background scrape for key %s...", brand_key)
+            await run_scrape(brand_key)
+            await enrich_reviews()
+            from app.database import async_session
+            async with async_session() as session:
+                # Resolve brand_id again
+                res_b = await session.execute(select(Brand).where(Brand.url == scraper.base_url))
+                b_val = res_b.scalar_one_or_none()
+                if b_val:
+                    await generate_brand_insights(b_val.id, session)
+            logger.info("Background scrape and enrichment for key %s completed successfully.", brand_key)
+        except Exception as exc:
+            logger.exception("Error during background scraping task for brand key '%s': %s", brand_key, exc)
 
     background_tasks.add_task(scrape_and_enrich_task)
 

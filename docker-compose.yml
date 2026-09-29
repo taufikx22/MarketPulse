@@ -22,6 +22,32 @@ services:
     volumes:
       - chromadata:/chroma/chroma
 
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://marketpulse:marketpulse@postgres:5432/marketpulse
+      - DATABASE_URL_SYNC=postgresql://marketpulse:marketpulse@postgres:5432/marketpulse
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
+      - CORS_ORIGINS=["http://localhost:3000", "http://127.0.0.1:3000"]
+      - CLERK_JWKS_URL=
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+
 volumes:
   pgdata:
   chromadata:

@@ -1,8 +1,11 @@
 """Sentiment classification for reviews.
 Uses HuggingFace's cardiffnlp model when available, falls back to a
-simpler TextBlob-based approach for environments without torch/GPU."""
+keyword-based scoring approach for lightweight environments without torch/GPU."""
 
+import logging
 from typing import Optional
+
+logger = logging.getLogger(__name__)
 
 _pipeline = None
 _use_fallback = False
@@ -20,9 +23,12 @@ def _load_model():
             model="cardiffnlp/twitter-roberta-base-sentiment-latest",
             max_length=512,
             truncation=True,
+            model_kwargs={"local_files_only": True},
         )
-    except Exception:
+        logger.info("Loaded Hugging Face sentiment model (cardiffnlp/twitter-roberta-base-sentiment-latest)")
+    except Exception as exc:
         _use_fallback = True
+        logger.info("Local Hugging Face sentiment model not cached; activating keyword-based fallback: %s", exc)
 
 
 def classify_sentiment(text: str) -> dict:

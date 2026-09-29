@@ -1,8 +1,12 @@
+import json
+import sqlite3
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.types import ARRAY
 from app.config import get_settings
+
+sqlite3.register_adapter(list, json.dumps)
 
 @compiles(ARRAY, 'sqlite')
 def compile_array_sqlite(type_, compiler, **kw):

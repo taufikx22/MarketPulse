@@ -13,6 +13,10 @@ THEME_LABELS = [
     "subscription",
 ]
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 _classifier = None
 _use_fallback = False
 
@@ -26,9 +30,12 @@ def _load_model():
         _classifier = pipeline(
             "zero-shot-classification",
             model="facebook/bart-large-mnli",
+            model_kwargs={"local_files_only": True},
         )
-    except Exception:
+        logger.info("Loaded Hugging Face zero-shot classification model (facebook/bart-large-mnli)")
+    except Exception as exc:
         _use_fallback = True
+        logger.info("Local Hugging Face zero-shot model not cached; activating keyword-based theme tagger: %s", exc)
 
 
 def tag_themes(text: str, threshold: float = 0.3) -> list[str]:

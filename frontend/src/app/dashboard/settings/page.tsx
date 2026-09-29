@@ -114,7 +114,7 @@ export default function SettingsPage() {
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.35rem' }}>
                 <input
                   type="password"
-                  value="mp_live_token_77a942fb882194cc2"
+                  value="mp_dev_token_placeholder"
                   readOnly
                   style={{
                     flex: 1,

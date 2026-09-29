@@ -1,8 +1,11 @@
 import hashlib
+import logging
 import re
 from datetime import date, datetime
 from typing import Optional
 from bs4 import BeautifulSoup
+
+logger = logging.getLogger(__name__)
 
 
 def clean_review_text(raw: str) -> str:
@@ -35,15 +38,17 @@ def normalize_price(price_val) -> Optional[float]:
         return None
     if isinstance(price_val, (int, float)):
         return round(float(price_val), 2)
-    cleaned = re.sub(r"[^\d.]", "", str(price_val))
+    match = re.search(r"(\d[\d,]*(?:\.\d+)?)", str(price_val))
+    if not match:
+        return None
     try:
-        return round(float(cleaned), 2)
+        return round(float(match.group(1).replace(",", "")), 2)
     except ValueError:
         return None
 
 
 def make_review_hash(text: str, product_id: int) -> str:
-    normalized = text.strip().lower()
+    normalized = clean_review_text(text).lower()
     return hashlib.sha256(f"{normalized}:{product_id}".encode()).hexdigest()
 
 
@@ -70,10 +75,12 @@ def clean_review(raw: dict, product_id: int) -> Optional[dict]:
     """Clean a single raw review dict. Returns None if the review should be dropped."""
     text = raw.get("text", "")
     if not text or len(text.strip()) < 5:
+        logger.debug("Dropping review for product %s: text too short (<5 chars)", product_id)
         return None
 
     cleaned = clean_review_text(text)
     if not is_english(cleaned):
+        logger.debug("Dropping review for product %s: non-English content detected", product_id)
         return None
 
     return {
